@@ -1,53 +1,48 @@
-﻿@model IEnumerable<CarWash.WebApp.MVC.Models.Lavagen>
+﻿@using CarWash.WebApp.MVC.ViewModels
+@model RelatorioViewModel
 
 @{
-    ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<form id="formReport" submit="">
+    <div class="form-group">
+        <label for="dataLavagem"><b>Data Lavagem</b></label>
+        <input name="dataLavagem" type="datetime-local" class="form-control" id="dataLavagem" placeholder="Data Lavagem">
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Valor)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CodTipoLavagemNavigation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CpfNavigation)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PlacaNavigation)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Valor)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CodTipoLavagemNavigation.NomeLavagem)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CpfNavigation.Cpf)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PlacaNavigation.Placa)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
+    <div class="form-group">
+        <label for="cpfFuncionario" class="control-label"><b>CPF Funcionário</b></label>
+        <select name="cpfFuncionario" id="cpfFuncionario" class="form-control" asp-items="ViewBag.Cpf">
+            <option selected value="">--- SELECIONE ---</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Filtrar</button>
+</form>
+
+<div id="divReport" class="mt-3">
+    @Html.Partial("ObterRelatorio", Model)
+</div>
+
+@section Scripts{
+<script>
+        $("#formReport").submit((e) => {
+        e.preventDefault();
+
+        const dataLavagem = $("#dataLavagem").val();
+        const cpfFuncionario = $("#cpfFuncionario").val();
+
+        console.log($("#cpfFuncionario"));
+
+        const data = {
+            dataLavagem: dataLavagem,
+            cpfFuncionario: cpfFuncionario
+        };
+
+        $.post("@Url.Action("ObterRelatorio", "Lavagens")", data, (response) => {
+            console.log(response);
+            $("#divReport").html(response);
+        });
+    });
+</script>
 }
-    </tbody>
-</table>

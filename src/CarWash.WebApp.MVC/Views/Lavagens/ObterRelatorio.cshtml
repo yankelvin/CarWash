@@ -1,0 +1,66 @@
+﻿@model CarWash.WebApp.MVC.ViewModels.RelatorioViewModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Valor
+            </th>
+            <th>
+                Tipo Lavagem
+            </th>
+            <th>
+                Cpf
+            </th>
+            <th>
+                Placa
+            </th>
+            <th>
+                Data
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model.Lavagens)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Valor)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CodTipoLavagemNavigation.NomeLavagem)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CpfNavigation.Cpf)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.PlacaNavigation.Placa)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DataLavagem)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "Edit", new {  cpf = item.Cpf, placa = item.Placa, dataLavagem = item.DataLavagem  }) |
+                    @Html.ActionLink("Details", "Details", new { cpf = item.Cpf, placa = item.Placa, dataLavagem = item.DataLavagem }) |
+                    @Html.ActionLink("Delete", "Delete", new { cpf = item.Cpf, placa = item.Placa, dataLavagem = item.DataLavagem })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<div>
+    <b>Total Arrecadado:</b> @Model.TotalArrecadado
+</div>

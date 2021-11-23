@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CarWash.WebApp.MVC.Models;
+using CarWash.WebApp.MVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using CarWash.WebApp.MVC.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CarWash.WebApp.MVC.Controllers
 {
@@ -22,22 +22,43 @@ namespace CarWash.WebApp.MVC.Controllers
         public async Task<IActionResult> Index()
         {
             var carwashContext = _context.Lavagens.Include(l => l.CodTipoLavagemNavigation).Include(l => l.CpfNavigation).Include(l => l.PlacaNavigation);
-            return View(await carwashContext.ToListAsync());
+            var dados = await carwashContext.ToListAsync();
+
+            var totalArrecadado = dados.Sum(d => d.Valor);
+
+            ViewData["Cpf"] = new SelectList(_context.Funcionarios, "Cpf", "Cpf");
+
+            return View(new RelatorioViewModel { Lavagens = dados, TotalArrecadado = totalArrecadado });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ObterRelatorio(DateTime dataLavagem, string cpfFuncionario)
+        {
+            var carwashContext = _context.Lavagens.Include(l => l.CodTipoLavagemNavigation).Include(l => l.CpfNavigation).Include(l => l.PlacaNavigation);
+
+            var dados = await carwashContext.Where(c => (!new DateTime().Equals(dataLavagem) && c.DataLavagem.Equals(dataLavagem))
+                                                         || (!string.IsNullOrEmpty(cpfFuncionario) && c.Cpf.Equals(cpfFuncionario))).ToListAsync();
+
+            if (new DateTime().Equals(dataLavagem) && string.IsNullOrEmpty(cpfFuncionario))
+                dados = await carwashContext.ToListAsync();
+
+            var totalArrecadado = dados.Sum(d => d.Valor);
+
+            ViewData["Cpf"] = new SelectList(_context.Funcionarios, "Cpf", "Cpf");
+
+            return PartialView("ObterRelatorio", new RelatorioViewModel { Lavagens = dados, TotalArrecadado = totalArrecadado });
         }
 
         // GET: Lavagens/Details/5
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(string cpf, string placa, DateTime dataLavagem)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
             var lavagen = await _context.Lavagens
                 .Include(l => l.CodTipoLavagemNavigation)
                 .Include(l => l.CpfNavigation)
                 .Include(l => l.PlacaNavigation)
-                .FirstOrDefaultAsync(m => m.Cpf == id);
+                .FirstOrDefaultAsync(p => p.Cpf.Equals(cpf) && p.Placa.Equals(placa) && p.DataLavagem.Equals(dataLavagem));
+
             if (lavagen == null)
             {
                 return NotFound();
@@ -75,21 +96,20 @@ namespace CarWash.WebApp.MVC.Controllers
         }
 
         // GET: Lavagens/Edit/5
-        public async Task<IActionResult> Edit(string id)
+        public async Task<IActionResult> Edit(string cpf, string placa, DateTime dataLavagem)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var lavagen = await _context.Lavagens.FindAsync(id);
+            var lavagen = await _context.Lavagens.Where(p => p.Cpf.Equals(cpf) && p.Placa.Equals(placa) && p.DataLavagem.Equals(dataLavagem)).FirstAsync();
+
             if (lavagen == null)
             {
                 return NotFound();
             }
+
             ViewData["CodTipoLavagem"] = new SelectList(_context.TipoLavagems, "Codigo", "NomeLavagem", lavagen.CodTipoLavagem);
             ViewData["Cpf"] = new SelectList(_context.Funcionarios, "Cpf", "Cpf", lavagen.Cpf);
             ViewData["Placa"] = new SelectList(_context.Veiculos, "Placa", "Placa", lavagen.Placa);
+
             return View(lavagen);
         }
 
@@ -100,11 +120,6 @@ namespace CarWash.WebApp.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Cpf,Placa,DataLavagem,CodTipoLavagem,Valor")] Lavagen lavagen)
         {
-            if (id != lavagen.Cpf)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try
@@ -125,25 +140,23 @@ namespace CarWash.WebApp.MVC.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
             ViewData["CodTipoLavagem"] = new SelectList(_context.TipoLavagems, "Codigo", "NomeLavagem", lavagen.CodTipoLavagem);
             ViewData["Cpf"] = new SelectList(_context.Funcionarios, "Cpf", "Cpf", lavagen.Cpf);
             ViewData["Placa"] = new SelectList(_context.Veiculos, "Placa", "Placa", lavagen.Placa);
+
             return View(lavagen);
         }
 
         // GET: Lavagens/Delete/5
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(string cpf, string placa, DateTime dataLavagem)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var lavagen = await _context.Lavagens
                 .Include(l => l.CodTipoLavagemNavigation)
                 .Include(l => l.CpfNavigation)
                 .Include(l => l.PlacaNavigation)
-                .FirstOrDefaultAsync(m => m.Cpf == id);
+                .FirstOrDefaultAsync(p => p.Cpf.Equals(cpf) && p.Placa.Equals(placa) && p.DataLavagem.Equals(dataLavagem));
+
             if (lavagen == null)
             {
                 return NotFound();

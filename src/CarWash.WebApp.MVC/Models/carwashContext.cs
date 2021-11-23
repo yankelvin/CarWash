@@ -84,7 +84,7 @@ namespace CarWash.WebApp.MVC.Models
                 entity.Property(e => e.CodTipoLavagem).HasColumnName("COD_TIPO_LAVAGEM");
 
                 entity.Property(e => e.Valor)
-                    .HasColumnType("decimal(4, 2)")
+                    .HasColumnType("decimal(6, 2)")
                     .HasColumnName("VALOR");
 
                 entity.HasOne(d => d.CodTipoLavagemNavigation)
